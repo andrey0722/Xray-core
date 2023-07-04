@@ -24,6 +24,7 @@ import (
 	"github.com/xtls/xray-core/features/outbound"
 	"github.com/xtls/xray-core/features/policy"
 	"github.com/xtls/xray-core/features/stats"
+	"github.com/xtls/xray-core/nekoutils"
 	"github.com/xtls/xray-core/proxy"
 	"github.com/xtls/xray-core/transport"
 	"github.com/xtls/xray-core/transport/internet"
@@ -179,6 +180,7 @@ func (h *Handler) Tag() string {
 
 // Dispatch implements proxy.Outbound.Dispatch.
 func (h *Handler) Dispatch(ctx context.Context, link *transport.Link) {
+	inbound := session.InboundFromContext(ctx)
 	outbounds := session.OutboundsFromContext(ctx)
 	ob := outbounds[len(outbounds)-1]
 	content := session.ContentFromContext(ctx)
@@ -208,6 +210,42 @@ func (h *Handler) Dispatch(ctx context.Context, link *transport.Link) {
 		link.Reader = &buf.EndpointOverrideReader{Reader: link.Reader, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address}
 		link.Writer = &buf.EndpointOverrideWriter{Writer: link.Writer, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address}
 	}
+	destination := outbound.Target
+
+	// Neko connections
+	corePtr := nekoutils.CorePtrFromContext(ctx)
+	if nekoutils.GetConnectionPoolV2RayEnabled(corePtr) {
+		var inboundTag, dest, routeDest string
+		var inboundUid uint32
+		dest = destination.String()
+		if outbound.RouteTarget.IsValid() {
+			routeDest = outbound.RouteTarget.String()
+		}
+		if inbound != nil {
+			inboundTag = inbound.Tag
+			// inboundUid = inbound.Uid
+			// TODO get tun info
+		}
+
+		conn := &nekoutils.ManagedV2rayConn{
+			Dest:       dest,
+			RouteDest:  routeDest,
+			InboundTag: inboundTag,
+			InboundUid: inboundUid,
+			Tag:        h.tag,
+			CloseFunc: func() error {
+				common.Interrupt(link.Reader)
+				common.Interrupt(link.Writer)
+				return nil
+			},
+		}
+		link = transport.LinkWithCloseHook(link, func() bool {
+			conn.ConnectionEnd()
+			return true
+		})
+		conn.ConnectionStart(corePtr)
+	}
+
 	if h.mux != nil {
 		test := func(err error) {
 			if err != nil {
