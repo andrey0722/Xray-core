@@ -55,6 +55,8 @@ type Inbound struct {
 	// CanSpliceCopy is a property for this connection
 	// 1 = can, 2 = after processing protocol info should be able to, 3 = cannot
 	CanSpliceCopy int
+	// UID for Matsuri
+	Uid uint32
 }
 
 // Outbound is the metadata of an outbound connection.
