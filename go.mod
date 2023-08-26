@@ -48,6 +48,7 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	go.uber.org/mock v0.5.0 // indirect
+	go4.org/netipx v0.0.0-20230824141953-6213f710f925 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
