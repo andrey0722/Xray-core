@@ -51,7 +51,7 @@ func NewClient(ctx context.Context, config *ClientConfig) (*Client, error) {
 	}
 	if config.Plugin != "" {
 		if serverList.Size() > 1 {
-			return nil, newError("only 1 server for plugin")
+			return nil, errors.New("only 1 server for plugin")
 		}
 		var err error
 		client.obfsFunc, client.v2ray, err = plugin.NewPlugin(config.Plugin, config.PluginOpts, client.serverPicker.PickServer())

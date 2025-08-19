@@ -388,7 +388,7 @@ func (v *StreamCipher) EncodePacket(key []byte, b *buf.Buffer) error {
 
 func (v *StreamCipher) DecodePacket(key []byte, b *buf.Buffer) error {
 	if b.Len() <= v.IVSize() {
-		return newError("insufficient data: ", b.Len())
+		return errors.New("insufficient data: ", b.Len())
 	}
 	iv := b.BytesTo(v.IVSize())
 	stream, err := v.DecryptCreator(key, iv)

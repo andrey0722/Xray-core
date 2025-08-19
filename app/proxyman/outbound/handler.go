@@ -210,6 +210,7 @@ func (h *Handler) Dispatch(ctx context.Context, link *transport.Link) {
 		link.Reader = &buf.EndpointOverrideReader{Reader: link.Reader, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address}
 		link.Writer = &buf.EndpointOverrideWriter{Writer: link.Writer, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address}
 	}
+	outbound := ob
 	destination := outbound.Target
 
 	// Neko connections
